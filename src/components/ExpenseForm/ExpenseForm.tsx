@@ -2,12 +2,22 @@
 import React, { useState } from 'react';
 import './ExpenseForm.css';
 
+import type { ExpenseCategory, FilterOption, SortOption } from '../ExpenseCard/ExpenseCard';
+
+
 // Form data interface
 interface ExpenseFormData {
   description: string;
   amount: string;
-  category: string;
+  category: ExpenseCategory;
   date: string;
+}
+
+interface FormErrors {
+  description?: string;
+  amount?: string;
+  category?: string;
+  date?: string;
 }
 
 /**
@@ -19,9 +29,24 @@ interface ExpenseFormProps {
   onSubmit: (expenseData: {
     description: string;
     amount: number;
-    category: string;
+    category: ExpenseCategory;
     date: string;
   }) => void;
+}
+
+const validatingExpense = (formData: ExpenseFormData): FormErrors | null => {
+  const errors: FormErrors ={}
+
+  if (!formData.description.trim() || !formData.amount || !formData.date) {
+      errors.description = ('Please fill in all required fields');
+
+    }
+
+    const amount = parseFloat(formData.amount);
+    if (amount <= 0) {
+      errors.amount = ('Amount must be greater than 0');
+    }
+  return errors;
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
@@ -32,6 +57,7 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
     category: 'Food',
     date: new Date().toISOString().split('T')[0] // Today's date as default
   });
+  const [errors, setErrors] = useState<FormErrors>({}) 
 
   /**
    * Handles input changes for all form fields using computed property names
@@ -55,16 +81,22 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
     e.preventDefault();
     
     // Basic validation
-    if (!formData.description.trim() || !formData.amount || !formData.date) {
-      alert('Please fill in all required fields');
-      return;
-    }
+    // if (!formData.description.trim() || !formData.amount || !formData.date) {
+    //   alert('Please fill in all required fields');
+    //   return;
+    // }
 
-    const amount = parseFloat(formData.amount);
-    if (amount <= 0) {
-      alert('Amount must be greater than 0');
+     const amount = parseFloat(formData.amount);
+    // if (amount <= 0) {
+    //   alert('Amount must be greater than 0');
+    //   return;
+    // }
+    const errors = validatingExpense(formData)
+    if(errors != null){
+      setErrors(errors)
       return;
     }
+      
 
     // Submit processed data
     onSubmit({
